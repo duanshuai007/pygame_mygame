@@ -11,13 +11,18 @@ class Enemy(pygame.sprite.Sprite):
 	default_speed = 0
 	cx = 0
 	cy = 0
+	__rotate = 0
+	__alive = True
+	__death_ticks = 0
+	__death_image_name = ""
 	#enemy 只生成在hero位置为圆心,3/8屏幕高度为半径的范围之外
-	def __init__(self, image_file, name, screen, location:tuple, speed:int):
+	def __init__(self, image_file, death_image_file, name, screen, location:tuple, speed:int):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = pygame.image.load(image_file).convert_alpha()
-		self.image = pygame.transform.scale(self.image, (30,30))
+		self.image = pygame.transform.scale(self.image, (40,40))
 		self.image.set_colorkey((255,255,255))
 		self.rect = self.image.get_rect()
+		self.__death_image_name = death_image_file
 		self.default_speed = speed
 		x = random.randint(0, screen.get_width());
 		y = random.randint(0, screen.get_height());
@@ -39,13 +44,12 @@ class Enemy(pygame.sprite.Sprite):
 		self.rect.centerx = x
 		self.rect.centery = y
 		self.speed = [0, 0]
-		if location[0] < screen.get_width() / 2:
-			self.rotate()
 		self.name = name
 		self.screen = screen
 
 	def update(self, target:tuple):
-		self.move(target)
+		if self.__alive is True:
+			self.move(target)
 
     #动画函数
 	def move(self, target:tuple):
@@ -105,13 +109,20 @@ class Enemy(pygame.sprite.Sprite):
 			c = math.sqrt(a*a + b*b)
 			self.speed[0] = self.default_speed * a / c
 			self.speed[1] = self.default_speed * b / c
+
+		#如果不进行判断，每次都转动方向的话就形成了飞碟转动的效果
+		'''
+		if cur_pos_x < tar_pos_x:
+			self.rotate(0)
+		else:
+			self.rotate(1)
+		'''
+		self.rotate(0)
 		self.cx += self.speed[0]
 		self.cy += self.speed[1]
 		self.rect.centerx = round(self.cx)
 		self.rect.centery = round(self.cy)
-#        self.rect.left += self.speed[0]
-#        self.rect.top += self.speed[1]
-	#怪物转向
+
 	def get_distance(self, location:tuple):
 		a = abs(location[0] - self.rect.centerx)
 		b = abs(location[1] - self.rect.centery)
@@ -123,10 +134,33 @@ class Enemy(pygame.sprite.Sprite):
 			c = math.sqrt(a*a + b*b)
 			return [round(c, 1), self]
 
-	def rotate(self):
+	def rotate(self, rotate:int):
 		#self.image = pygame.transform.rotate(self.image, 180)
+		'''
+		if self.__rotate != rotate:
+			self.__rotate = rotate
+			self.image = pygame.transform.flip(self.image, True, False)
+			self.rect = self.image.get_rect(center = self.rect.center)
+		'''
 		self.image = pygame.transform.flip(self.image, True, False)
 		self.rect = self.image.get_rect(center = self.rect.center)
+
+	def alive(self):
+		return self.__alive
+
+	def death(self):
+		self.__alive = False
+		self.__death_ticks = pygame.time.get_ticks()
+		self.image = pygame.image.load(self.__death_image_name).convert_alpha()
+		self.image = pygame.transform.scale(self.image, (40,40))
+		self.image.set_colorkey((255,255,255))
+		self.rect = self.image.get_rect(center = self.rect.center)
+
+	def time_to_clean(self, tick):
+		curr_tick = pygame.time.get_ticks()
+		if curr_tick > self.__death_ticks + tick:
+			return True
+		return False
 
 def main():
     pass

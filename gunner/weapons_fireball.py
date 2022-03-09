@@ -111,13 +111,13 @@ class fireball(pygame.sprite.Sprite):
 				c = math.sqrt(a*a + b*b)
 				self.speed[0] = round(self.default_speed * a / c, 4)
 				self.speed[1] = round(self.default_speed * b / c, 4)
-		delta_x = tar_pos_x - cur_pos_x
-		delta_y = tar_pos_y - cur_pos_y
-		angle = math.atan2(delta_y, delta_x)
-		angled = warp_angle(-math.degrees(angle))
-		self.image = pygame.transform.rotate(self.origin_image, angled)
-		self.image.set_colorkey((255,255,255))
-		self.rect = self.image.get_rect(center = self.rect.center)
+			delta_x = tar_pos_x - cur_pos_x
+			delta_y = tar_pos_y - cur_pos_y
+			angle = math.atan2(delta_y, delta_x)
+			angled = warp_angle(-math.degrees(angle))
+			self.image = pygame.transform.rotate(self.origin_image, angled)
+			self.image.set_colorkey((255,255,255))
+			self.rect = self.image.get_rect(center = self.rect.center)
 
 		self.cx += self.speed[0]
 		self.cy += self.speed[1]
