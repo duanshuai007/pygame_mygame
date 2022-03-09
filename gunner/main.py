@@ -37,36 +37,36 @@ def animate():
 			if enemy.alive():
 				intersect_sprite = pygame.sprite.spritecollide(enemy, fkgroup, False)
 				if intersect_sprite:
+					#设置enemy死亡状态
+					enemy.death()
 					#这里预估是将第一个触碰到enemy的子弹移除
 					for bullet in intersect_sprite:
 						fkgroup.remove(bullet)
 						bullet.kill()
 						break
-					#将enemy从组中移除
-					#enemygroup.remove(enemy)
-					enemy.death()
+
+					#寻找距离该被消灭的enemy附近距离最近的enemy
+					distance_list = []
+					for e in enemygroup:
+						if e.alive():
+							distance_list.append(e.get_distance((enemy.rect.centerx, enemy.rect.centery)))
+					if len(distance_list):
+						distance_list.sort(reverse=False, key=itemgetter(0))
 					#有碰撞,对子弹组中的子弹进行判断，
 					#因为该enemy即将删除，所以需要将目标是该enemy的子弹进行处理
-					#将距离enemy最近的子弹进行删除
-					#其他子弹的target设置为此刻距离该子弹最近的enemy
+					#其他子弹的target设置为此刻距离该enemy最近的enemy
 					for bullet in fkgroup:
 						if bullet.target_enemy == enemy:
-							distance_list = []
-							for e in enemygroup:
-								if e.alive():
-									distance_list.append(e.get_distance((bullet.rect.centerx, bullet.rect.centery)))
 							if len(distance_list):
-								distance_list.sort(reverse=False, key=itemgetter(0))
 								bullet.set_target(distance_list[0][1])
 							else:
 								bullet.set_target(None)
 							#fkgroup.remove(bullet)
 							#bullet.kill()
-					#删除enemy
-					#enemy.kill()
 					#得分+1
 					hero.score+=1
 			else:
+				#时间到清除该enemy
 				if enemy.time_to_clean(200):
 					enemygroup.remove(enemy)
 					enemy.kill()
@@ -182,11 +182,12 @@ while mRunning:
 	else:
 		curr_ts = pygame.time.get_ticks()
 		if curr_ts - g_gun_last_interval_ts > GUN_INTERVAL_TS:
-		#if curr_ts - g_gun_last_interval_ts > 100:
+#if curr_ts - g_gun_last_interval_ts > 100:
 			g_gun_last_interval_ts = curr_ts
 			distance_list = []
 			for enemy in enemygroup:
-				distance_list.append(enemy.get_distance((hero.rect.centerx, hero.rect.centery)))
+				if enemy.alive():
+					distance_list.append(enemy.get_distance((hero.rect.centerx, hero.rect.centery)))
 			if len(distance_list):
 				distance_list.sort(reverse=False, key=itemgetter(0))
 				r = random.randint(1, 10)

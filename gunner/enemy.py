@@ -157,9 +157,10 @@ class Enemy(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect(center = self.rect.center)
 
 	def time_to_clean(self, tick):
-		curr_tick = pygame.time.get_ticks()
-		if curr_tick > self.__death_ticks + tick:
-			return True
+		if self.__alive is False:
+			curr_tick = pygame.time.get_ticks()
+			if curr_tick > self.__death_ticks + tick:
+				return True
 		return False
 
 def main():
