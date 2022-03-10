@@ -25,29 +25,29 @@ def animate():
 	global global_counter
 	bg.update(hero.speed[0], hero.keepmove)
 
-	fkgroup.update()
+	bullte_group.update()
 	hero.update()
 
 	global_counter += 1
 	if global_counter % 4 == 0:
-		enemygroup.update((hero.rect.centerx, hero.rect.centery))
-		for enemy in enemygroup:
+		enemy_group.update((hero.rect.centerx, hero.rect.centery))
+		for enemy in enemy_group:
 			#enemy.move((hero.rect.centerx, hero.rect.centery))
 			#对每个enemy都与子弹组进行碰撞检测
 			if enemy.alive():
-				intersect_sprite = pygame.sprite.spritecollide(enemy, fkgroup, False)
+				intersect_sprite = pygame.sprite.spritecollide(enemy, bullte_group, False)
 				if intersect_sprite:
 					#设置enemy死亡状态
 					enemy.death()
 					#这里预估是将第一个触碰到enemy的子弹移除
 					for bullet in intersect_sprite:
-						fkgroup.remove(bullet)
+						bullte_group.remove(bullet)
 						bullet.kill()
 						break
 
 					#寻找距离该被消灭的enemy附近距离最近的enemy
 					distance_list = []
-					for e in enemygroup:
+					for e in enemy_group:
 						if e.alive():
 							distance_list.append(e.get_distance((enemy.rect.centerx, enemy.rect.centery)))
 					if len(distance_list):
@@ -55,31 +55,31 @@ def animate():
 					#有碰撞,对子弹组中的子弹进行判断，
 					#因为该enemy即将删除，所以需要将目标是该enemy的子弹进行处理
 					#其他子弹的target设置为此刻距离该enemy最近的enemy
-					for bullet in fkgroup:
+					for bullet in bullte_group:
 						if bullet.target_enemy == enemy:
 							if len(distance_list):
 								bullet.set_target(distance_list[0][1])
 							else:
 								bullet.set_target(None)
-							#fkgroup.remove(bullet)
+							#bullte_group.remove(bullet)
 							#bullet.kill()
 					#得分+1
 					hero.score+=1
 			else:
 				#时间到清除该enemy
 				if enemy.time_to_clean(200):
-					enemygroup.remove(enemy)
+					enemy_group.remove(enemy)
 					enemy.kill()
 
-	enemygroup.draw(screen)
-	intersect_monster = pygame.sprite.spritecollide(hero, enemygroup, False)
+	enemy_group.draw(screen)
+	intersect_monster = pygame.sprite.spritecollide(hero, enemy_group, False)
 	if intersect_monster:
 		hero.hurt()
 	screen.blit(hero.image, hero.rect)
-	misc.life_display_update(screen, hero.life)
+	misc.life_display_update(hero.life)
 	screen.blit(pygame.font.Font.render(fontgame, "Score:{}".format(hero.score), 1, THECOLORS['white']), (20,10))
 	screen.blit(pygame.font.Font.render(fontgame, "Hero Shot IntervalMs:{} Enemy Speed:{}".format(GUN_INTERVAL_TS, ENEMY_SPEED), 1, THECOLORS['white']), (200,10))
-	fkgroup.draw(screen)
+	bullte_group.draw(screen)
 	#pygame.draw.line(screen, THECOLORS['green'], (hero.rect.left, hero.rect.top), (gun_pos_x, gun_pos_y), 2)
 #pygame.display.flip() 
 	pygame.display.update()
@@ -100,10 +100,10 @@ enemy_death_file = 'explosion1.gif'
 clock = pygame.time.Clock()
 
 #创建小组
-fkgroup = pygame.sprite.Group()
-enemygroup = pygame.sprite.Group()
-hero = Hero(hero_file, "hero", screen)
-bg = BackGround(None, "bg", screen)
+bullte_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
+hero = Hero(hero_file, "hero")
+bg = BackGround(None, "bg")
 
 font_type="times"
 font_size=30
@@ -130,9 +130,9 @@ while mRunning:
 			print ('frame rate =',frame_rate )
 		elif event.type == pygame.USEREVENT:
 			if event.attr == misc.GAME_OVER:
-				if gameover(screen, clock) == True:
-					enemygroup.empty()
-					fkgroup.empty()
+				if gameover() == True:
+					enemy_group.empty()
+					bullte_group.empty()
 					hero.reset()
 					game_restart = True
 				else:
@@ -155,7 +155,7 @@ while mRunning:
 				hero.speed[1] = HERO_Y_SPEED
 				hero.keepmove = True
 			elif event.key == pygame.K_SPACE:
-				pause(screen, clock)
+				pause()
 				#清除hero的移动速度等标志，清除按键记录信息
 				#防止退出暂停后出现移动异常的问题
 				hero.speed = [0,0]
@@ -185,7 +185,7 @@ while mRunning:
 #if curr_ts - g_gun_last_interval_ts > 100:
 			g_gun_last_interval_ts = curr_ts
 			distance_list = []
-			for enemy in enemygroup:
+			for enemy in enemy_group:
 				if enemy.alive():
 					distance_list.append(enemy.get_distance((hero.rect.centerx, hero.rect.centery)))
 			if len(distance_list):
@@ -204,42 +204,42 @@ while mRunning:
 					unlucky_value = 0
 
 				if buttle_count == 0:
-					fk = fireball(flyknife_file, screen, (hero.rect.centerx, hero.rect.centery), (0, 0), fkgroup)
+					fk = fireball(flyknife_file, (hero.rect.centerx, hero.rect.centery), (0, 0), bullte_group)
 					fk.set_speed(GUN_SPEED)
 					fk.set_target(distance_list[0][1])
-					fkgroup.add(fk)
+					bullte_group.add(fk)
 				else:
-					fk = fireball(flyknife_file, screen, (hero.rect.left, hero.rect.top), (0, 0), fkgroup)
+					fk = fireball(flyknife_file, (hero.rect.left, hero.rect.top), (0, 0), bullte_group)
 					fk.set_speed(GUN_SPEED)
 					fk.set_target(distance_list[0][1])
-					fkgroup.add(fk)
+					bullte_group.add(fk)
 
-					fk = fireball(flyknife_file, screen, (hero.rect.left, hero.rect.top + hero.rect.height//2), (0, 0), fkgroup)
+					fk = fireball(flyknife_file, (hero.rect.left, hero.rect.top + hero.rect.height//2), (0, 0), bullte_group)
 					fk.set_speed(GUN_SPEED)
 					fk.set_target(distance_list[0][1])
-					fkgroup.add(fk)
+					bullte_group.add(fk)
 
-					fk = fireball(flyknife_file, screen, (hero.rect.left, hero.rect.top + hero.rect.height), (0, 0), fkgroup)
+					fk = fireball(flyknife_file, (hero.rect.left, hero.rect.top + hero.rect.height), (0, 0), bullte_group)
 					fk.set_speed(GUN_SPEED)
 					fk.set_target(distance_list[0][1])
-					fkgroup.add(fk)
+					bullte_group.add(fk)
 
-					fk = fireball(flyknife_file, screen, (hero.rect.left + hero.rect.width, hero.rect.top), (0, 0), fkgroup)
+					fk = fireball(flyknife_file, (hero.rect.left + hero.rect.width, hero.rect.top), (0, 0), bullte_group)
 					fk.set_speed(GUN_SPEED)
 					fk.set_target(distance_list[0][1])
-					fkgroup.add(fk)
+					bullte_group.add(fk)
 
-					fk = fireball(flyknife_file, screen, (hero.rect.left + hero.rect.width, hero.rect.top + hero.rect.height//2), (0, 0), fkgroup)
+					fk = fireball(flyknife_file, (hero.rect.left + hero.rect.width, hero.rect.top + hero.rect.height//2), (0, 0), bullte_group)
 					fk.set_speed(GUN_SPEED)
 					fk.set_target(distance_list[0][1])
-					fkgroup.add(fk)
+					bullte_group.add(fk)
 
-					fk = fireball(flyknife_file, screen, (hero.rect.left + hero.rect.width, hero.rect.top + hero.rect.height), (0, 0), fkgroup)
+					fk = fireball(flyknife_file, (hero.rect.left + hero.rect.width, hero.rect.top + hero.rect.height), (0, 0), bullte_group)
 					fk.set_speed(GUN_SPEED)
 					fk.set_target(distance_list[0][1])
-					fkgroup.add(fk)
+					bullte_group.add(fk)
 			
-	if (len(enemygroup) < 16 and game_restart is False):
+	if (len(enemy_group) < 16 and game_restart is False):
 		if hero.score <= 25:
 			ENEMY_SPEED = 4
 			GUN_INTERVAL_TS = 1000
@@ -268,15 +268,15 @@ while mRunning:
 			ENEMY_SPEED = 10
 			GUN_INTERVAL_TS = 250
 		elif hero.score >= 500:
-			if game_success(screen, clock) is True:
-				enemygroup.empty()
-				fkgroup.empty()
+			if game_success() is True:
+				enemy_group.empty()
+				bullte_group.empty()
 				hero.reset()
 				game_restart = True
 			else:
 				pygame.quit()
-		enemy = Enemy(enemy_file, enemy_death_file, "enemy", screen, (hero.rect.centerx, hero.rect.centery), ENEMY_SPEED)
-		enemygroup.add(enemy)
+		enemy = Enemy(enemy_file, enemy_death_file, "enemy", (hero.rect.centerx, hero.rect.centery), ENEMY_SPEED)
+		enemy_group.add(enemy)
 		
 	animate()
 #控制帧速率

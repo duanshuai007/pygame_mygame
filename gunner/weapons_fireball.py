@@ -15,7 +15,7 @@ class fireball(pygame.sprite.Sprite):
 	cy = 0
 	target_enemy = None
 
-	def __init__(self, image_file, screen, hero_location:tuple, tar_location:tuple, group):
+	def __init__(self, image_file, hero_location:tuple, tar_location:tuple, group):
 		pygame.sprite.Sprite.__init__(self)
 		self.origin_image = pygame.image.load(image_file).convert_alpha()
 		self.origin_image = pygame.transform.scale(self.origin_image, (30,10))
@@ -26,7 +26,7 @@ class fireball(pygame.sprite.Sprite):
 		self.cx = hero_location[0]
 		self.cy = hero_location[1]
 		self.speed = [0, 0]
-		self.screen = screen
+		self.screen = pygame.display.get_surface()
 		self.group = group
 
 		cur_pos_x = hero_location[0]

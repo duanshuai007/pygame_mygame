@@ -13,7 +13,7 @@ GAME_OVER			= 0
 #GAME_RESET			= 1
 
 last_pause_ts = 0
-def pause(screen, clock):
+def pause():
 	global last_pause_ts
 	curr_ts = time.time() * 1000
 	if curr_ts - last_pause_ts > 200:
@@ -21,6 +21,7 @@ def pause(screen, clock):
 		largeText = pygame.font.Font(FONT_FILE, FONT_SIZE_LARGE)
 		TextSurf = largeText.render("Pause", True, (140,140,140))
 		TextRect = TextSurf.get_rect()
+		screen = pygame.display.get_surface()
 		TextRect.center = ((screen.get_width() / 2), (screen.get_height() / 2))
 		screen.blit(TextSurf, TextRect)
 		pygame.display.flip()
@@ -35,17 +36,17 @@ def pause(screen, clock):
 							exit = True
 							break
 
-			clock.tick(30)
+			pygame.time.wait(30)
 			pygame.display.update()
 		
-def game_success(screen, clock):
+def game_success():
 	largeText = pygame.font.Font(FONT_FILE, FONT_SIZE_LARGE)
 	TextSurf = largeText.render("YOU WIN", True, THECOLORS['red'])
 	tishi1 = pygame.font.Font(FONT_FILE, FONT_SIZE_SMALL)
 	tishi1_surface = tishi1.render("Press [Enter] Start a new game", True, THECOLORS['white'])
 	tishi2 = pygame.font.Font(FONT_FILE, FONT_SIZE_SMALL)
 	tishi2_surface = tishi2.render("Press [Exc] exit game", True, THECOLORS['white'])
-
+	screen = pygame.display.get_surface()
 	TextRect = TextSurf.get_rect()
 	TextRect.center = ((screen.get_width() / 2), (screen.get_height() / 2 - 80))
 	screen.blit(TextSurf, TextRect)
@@ -73,7 +74,7 @@ def game_success(screen, clock):
 					is_continue_game = False
 					exit = True
 					break
-		clock.tick(30)
+		pygame.time.wait(30)
 		pygame.display.update()
 
 	return is_continue_game
@@ -81,12 +82,13 @@ def game_success(screen, clock):
 gameover_exit_f = False
 game_continue_f = False
 
-def gameover(screen, clock):
+def gameover():
 	global gameover_exit_f
 	global game_continue_f
 	largeText = pygame.font.Font(FONT_FILE, FONT_SIZE_LARGE)
 	TextSurf = largeText.render("你死了", True, THECOLORS['red'])
 	TextRect = TextSurf.get_rect()
+	screen = pygame.display.get_surface()
 	TextRect.center = ((screen.get_width() / 2), (screen.get_height() / 2))
 	screen.blit(TextSurf, TextRect)
 	pygame.display.flip()
@@ -107,7 +109,8 @@ def gameover(screen, clock):
 				gameover_exit_f = True
 				break
 
-		clock.tick(30)
+		#clock.tick(30)
+		pygame.time.wait(30)
 		button(screen, "继续", bl, btop, button_width, button_height, THECOLORS['green'], THECOLORS['lightgreen'], game_reset)
 		button(screen, "退出", br, btop, button_width, button_height, THECOLORS['red'], THECOLORS['indianred1'], game_quit)
 		pygame.display.update()
@@ -144,11 +147,12 @@ def post_event_gameover():
 	e = pygame.event.Event(pygame.USEREVENT, attr=GAME_OVER)
 	pygame.event.post(e)
 
-def life_display_update(screen, life_number):
+def life_display_update(life_number):
 	img = pygame.image.load("hero_life.png").convert()
 	img = pygame.transform.scale(img, (30,30))
 	img.set_colorkey((0,0,0))
 	rect = img.get_rect()
+	screen = pygame.display.get_surface()
 	for i in range(0,life_number):
 		screen.blit(img, (20 + (i * (rect.width + 5)), 60))
 

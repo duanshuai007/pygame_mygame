@@ -30,7 +30,7 @@ class Hero(pygame.sprite.Sprite):
 	toward_left = 2
 	toward_right = 3
 	
-	def __init__(self, image_file, name, screen):
+	def __init__(self, image_file, name):
 		self._layer = 1
 		pygame.sprite.Sprite.__init__(self)
 		self.master_image = pygame.image.load(image_file).convert_alpha()
@@ -39,15 +39,15 @@ class Hero(pygame.sprite.Sprite):
 		self.master_image_w = self.master_image.get_width() // self.master_image_number
 		self.master_image_h = self.master_image.get_height()
 		self.master_image_index = 0
-
+		self.screen = pygame.display.get_surface()
 		rect = (0, 0, self.master_image_w, self.master_image_h)
 		self.image = self.master_image.subsurface(rect)
 		self.rect = self.image.get_rect()
-		self.rect.left, self.rect.top = [screen.get_width() / 2 - self.rect.width / 2, screen.get_height() * 0.7 - self.rect.height]
+		self.rect.left, self.rect.top = [self.screen.get_width() / 2 - self.rect.width / 2, self.screen.get_height() * 0.7 - self.rect.height]
 
 		self.speed = [0, 0]
 		self.name = name
-		self.screen = screen
+		
 		self.life = 5
 		self.is_hurt = False
 		self.hurt_display_count = 0

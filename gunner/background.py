@@ -9,7 +9,7 @@ class BackGround(pygame.sprite.Sprite):
 	screen = None
 #back_ground_index = 0
 #step = 0
-	def __init__(self, image_file, name, screen):
+	def __init__(self, image_file, name):
 		#self._layer = -1
 		pygame.sprite.Sprite.__init__(self)
 		'''
@@ -19,7 +19,7 @@ class BackGround(pygame.sprite.Sprite):
 		self.rrect = self.image.get_rect()
 		'''
 		self.name = name
-		self.screen = screen
+		self.screen = pygame.display.get_surface()
 		'''
 		self.step = 1.4
 		self.direct = 0

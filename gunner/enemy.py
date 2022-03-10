@@ -16,7 +16,7 @@ class Enemy(pygame.sprite.Sprite):
 	__death_ticks = 0
 	__death_image_name = ""
 	#enemy 只生成在hero位置为圆心,3/8屏幕高度为半径的范围之外
-	def __init__(self, image_file, death_image_file, name, screen, location:tuple, speed:int):
+	def __init__(self, image_file, death_image_file, name, location:tuple, speed:int):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = pygame.image.load(image_file).convert_alpha()
 		self.image = pygame.transform.scale(self.image, (40,40))
@@ -24,20 +24,21 @@ class Enemy(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.__death_image_name = death_image_file
 		self.default_speed = speed
-		x = random.randint(0, screen.get_width());
-		y = random.randint(0, screen.get_height());
+		self.screen = pygame.display.get_surface()
+		x = random.randint(0, self.screen.get_width());
+		y = random.randint(0, self.screen.get_height());
 		while True:
-			if math.sqrt((location[0] - x) * (location[0] - x) + (location[1] - y) * (location[1] - y)) > screen.get_height() * 3 / 8:
+			if math.sqrt((location[0] - x) * (location[0] - x) + (location[1] - y) * (location[1] - y)) > self.screen.get_height() * 3 / 8:
 				break
 			else:
-				if y >= screen.get_height() // 2 and y < screen.get_height():
+				if y >= self.screen.get_height() // 2 and y < self.screen.get_height():
 					y += 10
-				elif y >= screen.get_height():
+				elif y >= self.screen.get_height():
 					y = 0
-				elif y < screen.get_height() // 2 and y > 0:
+				elif y < self.screen.get_height() // 2 and y > 0:
 					y -= 10
 				elif y <= 0:
-					y = screen.get_height()
+					y = self.screen.get_height()
 		#self.rect.left, self.rect.top = [x, y]
 		self.cx = x
 		self.cy = y
@@ -45,7 +46,7 @@ class Enemy(pygame.sprite.Sprite):
 		self.rect.centery = y
 		self.speed = [0, 0]
 		self.name = name
-		self.screen = screen
+		
 
 	def update(self, target:tuple):
 		if self.__alive is True:
