@@ -33,7 +33,7 @@ class Hero(pygame.sprite.Sprite):
     cy = 0
     default_speed = 0
     
-    def __init__(self, image_file, name):
+    def __init__(self, image_file, name, speed):
         self._layer = 1
         pygame.sprite.Sprite.__init__(self)
         self.master_image = pygame.image.load(image_file).convert_alpha()
@@ -53,7 +53,7 @@ class Hero(pygame.sprite.Sprite):
         
         self.cx = self.rect.centerx
         self.cy = self.rect.centery
-        self.default_speed = 3
+        self.default_speed = speed
         self.life = 5
         self.is_hurt = False
         self.hurt_display_count = 0

@@ -4,15 +4,15 @@ from pygame.color import THECOLORS
 import time
 import sys
 
-from hero import Hero
+#from hero import Hero
+from hero_8 import Hero
 from enemy import Enemy
 from weapons_fireball import fireball
 from background import BackGround
 import misc
 from misc import pause,gameover,game_success
 
-HERO_X_SPEED = 3
-HERO_Y_SPEED = 3
+HERO_SPEED = 1
 ENEMY_SPEED = 4
 GUN_SPEED = 10
 GUN_INTERVAL_TS = 1000
@@ -90,7 +90,8 @@ size = width,height = 1024,768
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Gunner")
 
-hero_file = 'hero.png'
+#hero_file = 'hero.png'
+hero_file = 'aaaaaaaaaaa.jpeg'
 enemy_file = 'monster1.png'
 #flyknife_file = 'fireball.png'
 flyknife_file = 'enemy.png'
@@ -103,7 +104,7 @@ clock = pygame.time.Clock()
 #创建小组
 bullte_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
-hero = Hero(hero_file, "hero")
+hero = Hero(hero_file, "hero", HERO_SPEED)
 bg = BackGround(None, "bg")
 
 font_type="times"
@@ -240,7 +241,7 @@ while mRunning:
                     fk.set_target(distance_list[0][1])
                     bullte_group.add(fk)
             
-    if (len(enemy_group) < 14 and game_restart is False):
+    if (len(enemy_group) < 1 and game_restart is False):
         if hero.score <= 25:
             ENEMY_SPEED = 4
             GUN_INTERVAL_TS = 1000
