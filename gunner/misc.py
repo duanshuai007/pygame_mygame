@@ -10,8 +10,8 @@ FONT_SIZE_LARGE		= 120
 FONT_SIZE_MIDDLE	= 80
 FONT_SIZE_SMALL		= 40
 
-GAME_OVER			= 0
-#GAME_RESET			= 1
+ATTR_GAME_OVER		= 0
+ATTR_ROLE_UPGRADE   = 1
 
 def calc_angle(cur_x:int, cur_y:int, tar_x:int, tar_y:int)->float:
     delta_x = tar_x - cur_x
@@ -24,12 +24,12 @@ def calc_angle_speed(angle):
     vel_x = math.cos(math.radians(angle))
     vel_y = math.sin(math.radians(angle))
     return [vel_x,vel_y]
-    
+
 def get_point_distance(a:tuple, b:tuple):
     x = abs(a[0] - b[0])
     y = abs(a[1] - b[1])
     return math.sqrt(x*x + y*y)
-    
+
 last_pause_ts = 0
 def pause():
     global last_pause_ts
@@ -58,7 +58,81 @@ def pause():
 
             pygame.time.wait(30)
             pygame.display.update()
-        
+
+def select_gift():
+    textFormat = pygame.font.Font(FONT_FILE, FONT_SIZE_SMALL)
+    screen = pygame.display.get_surface()
+    exit = False
+    textArea = pygame.Rect((screen.get_width() / 2 - 300, screen.get_height() / 2 - 100), (600, 140))
+    forcus = 0
+    x = 0
+    y = 0
+    w = round(screen.get_width() / 11, 1)
+    top = 120
+    while exit is False:
+        pygame.draw.rect(screen, [255,0,0], [w, top, w, w], 3)
+        pygame.draw.rect(screen, [255,0,0], [3*w, top, w, w], 3)
+        pygame.draw.rect(screen, [255,0,0], [5*w, top, w, w], 3)
+        pygame.draw.rect(screen, [255,0,0], [7*w, top, w, w], 3)
+        pygame.draw.rect(screen, [255,0,0], [9*w, top, w, w], 3)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if x > w and x < 2*w and y > top and y < top+w:
+                    exit = True
+                    e = pygame.event.Event(pygame.USEREVENT, attr=1000)
+                    pygame.event.post(e)
+                elif x > 3*w and x < 4*w and y > top and y < top+w:
+                    exit = True
+                    e = pygame.event.Event(pygame.USEREVENT, attr=1001)
+                    pygame.event.post(e)
+                elif x > 5*w and x < 6*w and y > top and y < top+w:
+                    exit = True
+                    e = pygame.event.Event(pygame.USEREVENT, attr=1002)
+                    pygame.event.post(e)
+                elif x > 7*w and x < 8*w and y > top and y < top+w:
+                    exit = True
+                    e = pygame.event.Event(pygame.USEREVENT, attr=1005)
+                    pygame.event.post(e)
+                elif x > 9*w and x < 10*w and y > top and y < top+w:
+                    exit = True
+                    e = pygame.event.Event(pygame.USEREVENT, attr=1004)
+                    pygame.event.post(e)
+                else:
+                    pass
+            elif event.type == pygame.MOUSEMOTION:
+                x,y = event.pos
+        if x > w and x < 2*w and y > top and y < w+top:
+            forcus = 1
+        elif x > 3*w and x < 4*w and y > top and y < w+top:
+            forcus = 2
+        elif x > 5*w and x < 6*w and y > top and y < w+top:
+            forcus = 3
+        elif x > 7*w and x < 8*w and y > top and y < w+top:
+            forcus = 4
+        elif x > 9*w and x < 10*w and y > top and y < w+top:
+            forcus = 5
+        else:
+            forcus = 0
+        if forcus == 1:
+            TextSurf = textFormat.render("人物移动速度+50%", True, THECOLORS['white'])
+        elif forcus == 2:
+            TextSurf = textFormat.render("子弹攻击力+%50", True, THECOLORS['white'])
+        elif forcus == 3:
+            TextSurf = textFormat.render("子弹攻击间隔", True, THECOLORS['white'])
+        elif forcus == 4:
+            TextSurf = textFormat.render("拾取经验值半价+100%", True, THECOLORS['white'])
+        elif forcus == 5:
+            TextSurf = textFormat.render("火环最大半径+20%", True, THECOLORS['white'])
+        else:
+            TextSurf = textFormat.render(None, True, THECOLORS['white'])
+        screen.fill(pygame.Color("gray"), textArea)
+        pygame.draw.rect(screen, [255,0,1], [screen.get_width() / 2 - 300, screen.get_height() / 2 - 100, 600, 140], 4)
+        screen.blit(TextSurf, textArea)
+        pygame.time.wait(50)
+        pygame.display.update()
+
 def game_success():
     largeText = pygame.font.Font(FONT_FILE, FONT_SIZE_LARGE)
     TextSurf = largeText.render("YOU WIN", True, THECOLORS['red'])
@@ -166,7 +240,7 @@ def game_reset():
     game_continue_f = True
 
 def post_event_gameover():
-    e = pygame.event.Event(pygame.USEREVENT, attr=GAME_OVER)
+    e = pygame.event.Event(pygame.USEREVENT, attr=ATTR_GAME_OVER)
     pygame.event.post(e)
 
 def life_display_update(life_number):
@@ -178,5 +252,6 @@ def life_display_update(life_number):
     for i in range(0,life_number):
         screen.blit(img, (20 + (i * (rect.width + 5)), 60))
 
-
-
+def post_event_role_upgrade():
+    e = pygame.event.Event(pygame.USEREVENT, attr=ATTR_ROLE_UPGRADE)
+    pygame.event.post(e)

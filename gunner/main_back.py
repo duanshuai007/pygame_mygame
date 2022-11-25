@@ -7,12 +7,11 @@ import sys
 from hero import Hero
 #from hero_8 import Hero
 from enemy import Enemy
+from weapons_fireball import fireball
 from background import BackGround
 import misc
-from misc import pause,gameover,game_success,select_gift
+from misc import pause,gameover,game_success
 import weapon_ringoffire
-import weapon_fireball
-from experience import Experience
 
 HERO_SPEED = 2
 ENEMY_SPEED = 1
@@ -23,38 +22,72 @@ from operator import itemgetter
 
 def animate():
     bg.update(hero.speed[0], hero.keepmove)
+
+    bullte_group.update()
+    invaild_bullte_group.update()
+
+    hero.update()
+
     enemy_group.update((hero.rect.centerx, hero.rect.centery))
     for enemy in enemy_group:
+        #enemy.move((hero.rect.centerx, hero.rect.centery))
+        #对每个enemy都与子弹组进行碰撞检测
         if enemy.alive():
-            pass
+            intersect_sprite = pygame.sprite.spritecollide(enemy, bullte_group, False)
+            if intersect_sprite:
+                #设置enemy死亡状态
+                #enemy.death()
+                #这里预估是将第一个触碰到enemy的子弹移除
+                for bullet in intersect_sprite:
+                    enemy.death(50)
+                    bullte_group.remove(bullet)
+                    #bullet.kill()
+                    invaild_bullte_group.add(bullet)
+                    bullet.set_disappear_point(invaild_bullte_group, enemy.getCurrentPos())
+                    break
+
+                #寻找距离该被消灭的enemy附近距离最近的enemy
+                distance_list = []
+                for e in enemy_group:
+                    if e.alive():
+                        distance_list.append(e.get_distance((enemy.rect.centerx, enemy.rect.centery)))
+                if len(distance_list):
+                    distance_list.sort(reverse=False, key=itemgetter(0))
+                #有碰撞,对子弹组中的子弹进行判断，
+                #因为该enemy即将删除，所以需要将目标是该enemy的子弹进行处理
+                #其他子弹的target设置为此刻距离该enemy最近的enemy
+                '''
+                for bullet in bullte_group:
+                    if bullet.target_enemy == enemy:
+                        if len(distance_list):
+                            #bullet.set_target(distance_list[0][1])
+                            bullet.set_target(None)
+                        else:
+                            bullet.set_target(None)
+                        #bullte_group.remove(bullet)
+                        #bullet.kill()
+                '''
         else:
+            #时间到清除该enemy
             if enemy.time_to_clean(100):
                 hero.score += 1
-                exp = Experience(screen, enemy.getCurrentPos(), 15)
-                experience_group.add(exp)
                 enemy_group.remove(enemy)
                 enemy.kill()
 
-    experience_group.update(hero.getCurrentPos(), hero.getClosedDistance())
-    for exp in experience_group:
-        if exp.beCaught():
-            experience_group.remove(exp)
-            exp.kill()
-            hero.add_experience()
-
-    experience_group.draw(screen)
     enemy_group.draw(screen)
     intersect_monster = pygame.sprite.spritecollide(hero, enemy_group, False)
     if intersect_monster:
         hero.hurt()
-    hero.update()
 
     for enemy in enemy_group:
         enemy.show_hurt_message()
-
-    #misc.life_display_update(hero.life)
+    misc.life_display_update(hero.life)
     screen.blit(pygame.font.Font.render(fontgame, "Score:{}".format(hero.score), 1, THECOLORS['white']), (20,10))
     screen.blit(pygame.font.Font.render(fontgame, "Hero Shot IntervalMs:{} Enemy Speed:{}".format(GUN_INTERVAL_TS, ENEMY_SPEED), 1, THECOLORS['white']), (200,10))
+    #update buttle image
+    bullte_group.draw(screen)
+    #update invaild buttle image 这些子弹不参与碰撞，不能杀伤怪物
+    invaild_bullte_group.draw(screen)
     #pygame.draw.line(screen, THECOLORS['green'], (hero.rect.left, hero.rect.top), (gun_pos_x, gun_pos_y), 2)
     #pygame.display.flip() 
     pygame.display.update()
@@ -77,8 +110,9 @@ enemy_death_file = 'explosion1.gif'
 clock = pygame.time.Clock()
 
 #创建小组
+bullte_group = pygame.sprite.Group()
+invaild_bullte_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
-experience_group = pygame.sprite.Group()
 hero = Hero(hero_file, "hero", HERO_SPEED, enemy_group)
 bg = BackGround(None, "bg")
 
@@ -113,30 +147,14 @@ while mRunning:
             frame_rate = clock.get_fps()
             print ('frame rate =',frame_rate )
         elif event.type == pygame.USEREVENT:
-            if event.attr == misc.ATTR_GAME_OVER:
+            if event.attr == misc.GAME_OVER:
                 if gameover() == True:
                     enemy_group.empty()
-                    experience_group.empty()
-                    hero.move_status_clear()
+                    bullte_group.empty()
                     hero.reset()
                     game_restart = True
                 else:
                     pygame.quit()
-            elif event.attr == 1000:
-                hero.set_paramters('role', 'speed_rate', 0.5)    #人物移动速度+50%
-            elif event.attr == 1001:
-                hero.set_paramters('buttle', 'attack_rate', 0.5) #子弹攻击力+50%
-            elif event.attr == 1002:
-                hero.set_paramters('buttle', 'interval_rate', -0.2)   #子弹攻击间隔-20%
-            elif event.attr == 1003:
-                hero.set_paramters('role', 'hitpoint_rate', 1)   #生命值+1
-            elif event.attr == 1004:
-                hero.set_paramters('ringoffire', 'maxradius_rate', 0.2)   #火环最大攻击半径+20%
-            elif event.attr == 1005:
-                hero.set_paramters('role', 'expcloseddistance_rate', 1.0)   #拾取经验半径+100%
-            elif event.attr == misc.ATTR_ROLE_UPGRADE:
-                select_gift()
-                hero.move_status_clear()
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                 hero.set_move_right()
@@ -148,10 +166,10 @@ while mRunning:
                 hero.set_move_down()
             if event.key == pygame.K_SPACE:
                 pause()
-                #select_gift()
                 hero.move_status_clear()
             elif event.key == pygame.K_q:
                 frame_rate = clock.get_fps()
+                print ('frame rate =',frame_rate )
                 pygame.quit()
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
@@ -172,8 +190,40 @@ while mRunning:
 
     if game_restart is True:
         game_restart = False
+    else:
+        curr_ts = pygame.time.get_ticks()
+        if curr_ts - g_gun_last_interval_ts > GUN_INTERVAL_TS:
+            g_gun_last_interval_ts = curr_ts
+            distance_list = []
+            for enemy in enemy_group:
+                if enemy.alive():
+                    distance_list.append(enemy.get_distance((hero.rect.centerx, hero.rect.centery)))
+            if len(distance_list):
+                distance_list.sort(reverse=False, key=itemgetter(0))
+                r = random.randint(1, 10)
+                #发射一颗子弹
+                buttle_count = 0
+                if r == 10:
+                    #连续发送6颗子弹
+                    buttle_count = 1
+                else:
+                    unlucky_value += 1
 
-    curr_ts = pygame.time.get_ticks()
+                if unlucky_value >= 10:
+                    buttle_count = 1
+                    unlucky_value = 0
+
+                if buttle_count == 0:
+                    fk = fireball(flyknife_file, (hero.rect.centerx, hero.rect.centery), distance_list[0][1], bullte_group, 300, 10)
+                    bullte_group.add(fk)
+                else:
+                    fk = fireball(flyknife_file, (hero.rect.left, hero.rect.top), distance_list[0][1], bullte_group, 300, 10)
+                    bullte_group.add(fk)
+                    fk = fireball(flyknife_file, (hero.rect.left, hero.rect.top + hero.rect.height//2), distance_list[0][1], bullte_group, 300, 10)
+                    bullte_group.add(fk)
+                    fk = fireball(flyknife_file, (hero.rect.left, hero.rect.top + hero.rect.height), distance_list[0][1], bullte_group, 300, 10)
+                    bullte_group.add(fk)
+
     if (len(enemy_group) < 1 and game_restart is False):
         if hero.score < 500:
             ENEMY_SPEED = 1
@@ -181,6 +231,7 @@ while mRunning:
         elif hero.score >= 500:
             if game_success() is True:
                 enemy_group.empty()
+                bullte_group.empty()
                 hero.reset()
                 game_restart = True
             else:
